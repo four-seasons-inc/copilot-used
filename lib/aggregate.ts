@@ -1,4 +1,4 @@
-import type { AiInteraction } from "./graph";
+import { AiInteraction } from "@/types";
 
 export function summarizeUser(interactions: AiInteraction[]) {
   const prompts = interactions.filter(

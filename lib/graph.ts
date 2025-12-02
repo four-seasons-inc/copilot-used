@@ -1,12 +1,8 @@
 import { summarizeUser } from "./aggregate";
 import { graph } from "./axiosGraph";
 import dayjs from "dayjs";
-
-export type AiInteraction = {
-  interactionType: "userPrompt" | "aiResponse" | string;
-  createdDateTime: string;
-  appClass: string;
-};
+import clientPromise from "@/lib/mongodb";
+import { AiInteraction, UserUsage } from "@/types";
 
 export async function getUsers() {
   const { data } = await graph(
@@ -17,19 +13,19 @@ export async function getUsers() {
 }
 async function getLogsForUser(userId: string) {
   const logs: AiInteraction[] = [];
-  const startDate = dayjs().add(-1, "month").toISOString();
+  const startDate = dayjs().add(-3, "day").toISOString();
   const endDate = dayjs().toISOString();
   let nextUrl = `/beta/copilot/users/${userId}/interactionHistory/getAllEnterpriseInteractions?$filter=createdDateTime gt ${startDate} and createdDateTime lt ${endDate}&$top=100`;
-  console.log(nextUrl);
   while (nextUrl) {
     try {
       const { data } = await graph(nextUrl);
       if (data.value && data.value.length > 0) {
         logs.push(
           ...data.value.map((v: AiInteraction) => ({
+            id: v.id,
             appClass: v.appClass,
             interactionType: v.interactionType,
-            createdDateTime: v.createdDateTime,
+            createdDateTime: dayjs(v.createdDateTime).toDate(),
           }))
         );
         if (data["@odata.nextLink"]) nextUrl = data["@odata.nextLink"];
@@ -44,20 +40,50 @@ async function getLogsForUser(userId: string) {
   }
   return logs;
 }
-export async function getLogsForUsers() {
+export async function asyncDb() {
   const users = await getUsers();
-  const arr: {
-    id: string;
-    userPrincipalName: string;
-    displayName: string;
-    promptTotal: number;
-    byAppClass: {
-      [k: string]: number;
-    };
-  }[] = [];
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DB);
   for (const user of users) {
     try {
       const logs = await getLogsForUser(user.id);
+      if (logs.length === 0) continue;
+
+      const operations = logs.map((log) => ({
+        updateOne: {
+          filter: { id: log.id }, // tìm theo id
+          update: {
+            $setOnInsert: {
+              ...log,
+              userId: user.id,
+              userPrincipalName: user.userPrincipalName,
+              displayName: user.displayName,
+              insertedAt: new Date(),
+            },
+          },
+          upsert: true,
+        },
+      }));
+      await db.collection("logs").bulkWrite(operations, {
+        ordered: false,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+export async function getLogsForUsers(range = 30) {
+  const users = await getUsers();
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DB);
+  const customAgo = dayjs().subtract(range, "day").toDate();
+  const arr: UserUsage[] = [];
+  for (const user of users) {
+    try {
+      const logs = await db
+        .collection<AiInteraction>("logs")
+        .find({ userId: user.id, createdDateTime: { $gte: customAgo } })
+        .toArray();
       if (logs.length === 0) continue;
       arr.push({
         ...user,
@@ -67,7 +93,7 @@ export async function getLogsForUsers() {
       console.log(error);
     }
   }
-  return arr;
+  return arr.sort((a, b) => b.promptTotal - a.promptTotal);
 }
 
 export async function fetchInteractionsForUser(

@@ -1,49 +1,48 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
 
-interface UserLogData {
-  id: string;
-  userPrincipalName: string;
-  displayName: string;
-  promptTotal: number;
-  byAppClass: Record<string, number>;
-}
+import SummaryCards from "@/components/SummaryCards";
+import TimeRangeSelector from "@/components/TimeRangeSelector";
+import UsageChart from "@/components/UsageChart";
+import UserTable from "@/components/UserTable";
+import { UserUsage } from "@/types";
 
-interface DashboardProps {
-  logs: UserLogData[];
-}
-
-export default function Dashboard({ logs }: DashboardProps) {
+export default function Dashboard({
+  data,
+  range,
+}: {
+  data: UserUsage[];
+  range: number;
+}) {
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Copilot Used Dashboard</h1>
-      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-        {logs.map((user) => (
-          <Card key={user.id} className="border">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">
-                {user.displayName}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">{user.userPrincipalName}</p>
-              <p className="mt-2 font-medium">
-                Total Prompts: {user.promptTotal}
-              </p>
+    <div className="min-h-screen bg-gray-50 relative p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">
+              Copilot 利用状況ダッシュボード
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              期間ごとの集計と、急増ユーザーの検出（Anomaly）
+            </p>
+          </div>
 
-              <div className="mt-4 space-y-1">
-                <h3 className="text-sm font-semibold">By App Class:</h3>
-                <ul className="text-sm text-gray-700">
-                  {Object.entries(user.byAppClass).map(([app, count]) => (
-                    <li key={app} className="flex justify-between">
-                      <span>{app}</span>
-                      <span>{count}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          <div>
+            <TimeRangeSelector value={range} />
+          </div>
+        </header>
+
+        <SummaryCards data={data} />
+
+        <div className="grid grid-cols-1">
+          <UsageChart data={data} />
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2">
+            ユーザー別利用状況（増減ハイライト: +50% 以上）
+          </h2>
+          <UserTable data={data} />
+        </div>
       </div>
     </div>
   );
