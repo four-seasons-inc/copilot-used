@@ -1,20 +1,38 @@
 "use client";
 
+import LoadingOverlay from "@/components/LoadingOverlay";
 import SummaryCards from "@/components/SummaryCards";
 import TimeRangeSelector from "@/components/TimeRangeSelector";
 import UsageChart from "@/components/UsageChart";
 import UserTable from "@/components/UserTable";
 import { UserUsage } from "@/types";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-export default function Dashboard({
-  data,
-  range,
-}: {
-  data: UserUsage[];
-  range: number;
-}) {
+export default function Dashboard({ range }: { range: number }) {
+  const [data, setData] = useState<UserUsage[]>([]);
+  const getData = async (range: number) => {
+    setLoading(true);
+    try {
+      const res = await axios(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/logs?range=${range}`
+      );
+      setData(res.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getData(range);
+  }, [range]);
+
   return (
     <div className="min-h-screen bg-gray-50 relative p-6">
+      <LoadingOverlay show={loading} />
       <div className="max-w-7xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
           <div>
