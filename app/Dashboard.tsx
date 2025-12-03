@@ -34,7 +34,7 @@ export default function Dashboard({ range }: { range: number }) {
     <div className="min-h-screen bg-gray-50 relative p-6">
       <LoadingOverlay show={loading} />
       <div className="max-w-7xl mx-auto space-y-6">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col lg:flex-row items-center justify-between gap-2">
           <div>
             <h1 className="text-2xl font-bold">
               Copilot 利用状況ダッシュボード
