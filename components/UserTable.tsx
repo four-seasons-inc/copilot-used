@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
 import type { UserUsage } from "@/types";
-import { detectAnomaly } from "@/utils/anomaly";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
 import { prettifyAppClass } from "@/utils/agg";
+import { useMemo, useState } from "react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { cn } from "@/lib/utils";
+import { Sparkle } from "lucide-react";
 
 /**
  * シンプルなテーブル。shadcn の Table コンポーネントがあるなら置き換えてください。
@@ -14,12 +15,21 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return data;
-    return data.filter(
-      (u) =>
+    return data.filter((u) => {
+      return (
         u.displayName.toLowerCase().includes(s) ||
         u.userPrincipalName.toLowerCase().includes(s)
-    );
+      );
+    });
   }, [data, q]);
+  const top = useMemo(() => {
+    return data.reduce((p, c) => {
+      Object.keys(c.byAppClass).forEach((k) => {
+        if (!p[k] || p[k] < c.byAppClass[k]) p[k] = c.byAppClass[k];
+      });
+      return p;
+    }, {} as Record<string, number>);
+  }, [data]);
 
   function downloadCSV() {
     const header = [
@@ -77,7 +87,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
               <th className="py-2">ユーザー</th>
               <th>メール</th>
               <th>使用回数</th>
-              <th>上位アプリ (トップ3)</th>
+              <th>上位アプリ</th>
             </tr>
           </thead>
           <tbody>
@@ -88,18 +98,27 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
 
               return (
                 <tr key={u.id} className={`border-t`}>
-                  <td className="py-1 font-medium">{u.displayName}</td>
-                  <td>{u.userPrincipalName}</td>
-                  <td className="font-medium">
+                  <td className="py-1 truncate px-2">{u.displayName}</td>
+                  <td className="px-2">{u.userPrincipalName}</td>
+                  <td className=" px-2 truncate">
                     {u.promptTotal.toLocaleString()}
                   </td>
-                  <td className="space-x-2">
+                  <td className="space-x-2 flex items-center flex-wrap gap-1">
                     {topApps.map(([k, v]) => (
                       <span
                         key={k}
-                        className="text-[11px] text-gray-600 border rounded px-1 p-0.5"
+                        className={cn(
+                          "text-[11px] text-gray-600 border border-current/30 rounded px-2 p-0.5 flex items-center gap-1 w-max",
+                          top[k] === v && "bg-yellow-600/80 text-white"
+                        )}
                       >
+                        {top[k] === v && (
+                          <Sparkle className="relative size-3 text-yellow-100 shadow-2xl" />
+                        )}
                         {prettifyAppClass(k)}({v})
+                        {top[k] === v && (
+                          <Sparkle className="relative size-3 text-yellow-100 shadow-2xl" />
+                        )}
                       </span>
                     ))}
                   </td>

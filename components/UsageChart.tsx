@@ -22,11 +22,11 @@ export default function UsageChart({ data }: { data: UserUsage[] }) {
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ left: 40, right: 20 }}
+            margin={{ left: 10, right: 10 }}
           >
             <CartesianGrid strokeDasharray="2 2" />
             <XAxis type="number" />
-            <YAxis dataKey="app" type="category" width={160} />
+            <YAxis dataKey="app" type="category" width={110} />
             <Tooltip
               formatter={(value: number) =>
                 new Intl.NumberFormat("ja-JP").format(value)

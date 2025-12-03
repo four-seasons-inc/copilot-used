@@ -14,7 +14,7 @@ export default async function Page({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Dashboard range={Number(range)} />;
+      <Dashboard range={Number(range)} />
     </div>
   );
 }

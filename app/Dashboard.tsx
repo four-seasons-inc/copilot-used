@@ -56,9 +56,7 @@ export default function Dashboard({ range }: { range: number }) {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-2">
-            ユーザー別利用状況（増減ハイライト: +50% 以上）
-          </h2>
+          <h2 className="text-lg font-semibold mb-2">ユーザー別利用状況</h2>
           <UserTable data={data} />
         </div>
       </div>
