@@ -84,10 +84,10 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
         <table className="min-w-full text-sm">
           <thead className="text-left">
             <tr>
-              <th className="py-2">ユーザー</th>
-              <th>メール</th>
-              <th>使用回数</th>
-              <th>上位アプリ</th>
+              <th className="p-2 w-28 truncate">ユーザー</th>
+              <th className="px-2 w-36 truncate">メール</th>
+              <th className="w-20 text-center truncate">使用回数</th>
+              <th className="px-4">上位アプリ</th>
             </tr>
           </thead>
           <tbody>
@@ -98,12 +98,14 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
 
               return (
                 <tr key={u.id} className={`border-t`}>
-                  <td className="py-1 truncate px-2">{u.displayName}</td>
-                  <td className="px-2">{u.userPrincipalName}</td>
-                  <td className=" px-2 truncate">
+                  <td className="p-1 w-28 truncate">{u.displayName}</td>
+                  <td className="px-1 w-36 truncate">
+                    {u.userPrincipalName.replace("@0004s.com", "")}
+                  </td>
+                  <td className="w-20 text-center truncate">
                     {u.promptTotal.toLocaleString()}
                   </td>
-                  <td className="space-x-2 flex items-center flex-wrap gap-1">
+                  <td className="p-1 flex items-center flex-wrap gap-1">
                     {topApps.map(([k, v]) => (
                       <span
                         key={k}
