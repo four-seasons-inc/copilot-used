@@ -9,8 +9,8 @@ export type AiInteraction = {
 };
 
 export interface UserUsage {
+  _id: string;
   id: string;
-  userPrincipalName: string;
   displayName: string;
   promptTotal: number;
   byAppClass: ByAppClass;
@@ -18,4 +18,21 @@ export interface UserUsage {
 
 export type RouteParams<T extends string> = {
   params: Promise<Record<T, string>>;
+};
+
+export type ChartItem = {
+  date: string;
+  count: number;
+};
+
+export type LogsApiResponse = {
+  filterBy?: string | null;
+  value?: string | null;
+  range?: string | null;
+  month?: string | null;
+  user?: string | null;
+  app?: string | null;
+  total: number;
+  chartData: ChartItem[];
+  logs: UserUsage[];
 };

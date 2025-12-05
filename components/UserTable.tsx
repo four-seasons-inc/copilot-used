@@ -18,7 +18,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
     return data.filter((u) => {
       return (
         u.displayName.toLowerCase().includes(s) ||
-        u.userPrincipalName.toLowerCase().includes(s)
+        u._id.toLowerCase().includes(s)
       );
     });
   }, [data, q]);
@@ -43,12 +43,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
         .sort((a, b) => b[1] - a[1])
         .map(([k, v]) => `${k.split(".").pop()}:${v}`)
         .join("|");
-      return [
-        u.displayName,
-        u.userPrincipalName,
-        String(u.promptTotal),
-        topApps,
-      ];
+      return [u.displayName, u._id, String(u.promptTotal), topApps];
     });
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
@@ -64,6 +59,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
 
   return (
     <div className="p-4 bg-white rounded-lg shadow mt-4">
+      <h2 className="text-lg font-semibold mb-2">ユーザー別利用状況</h2>
       <div className="flex gap-2 items-center mb-4">
         <Input
           value={q}
@@ -100,7 +96,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
                 <tr key={u.id} className={`border-t`}>
                   <td className="p-1 w-28 truncate">{u.displayName}</td>
                   <td className="px-1 w-36 truncate">
-                    {u.userPrincipalName.replace("@0004s.com", "")}
+                    {u._id.replace("@0004s.com", "")}
                   </td>
                   <td className="w-20 text-center truncate">
                     {u.promptTotal.toLocaleString()}

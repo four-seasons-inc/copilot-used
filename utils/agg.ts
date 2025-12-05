@@ -29,23 +29,24 @@ export function appClassToChartData(agg: ByAppClass) {
     .sort((a, b) => b.value - a.value);
 }
 
+export const appMap: Record<string, string> = {
+  webchat: "Webチャット",
+  bizchat: "職場チャット",
+  word: "Word",
+  excel: "Excel",
+  powerpoint: "PowerPoint",
+  outlook: "Outlook",
+  forms: "Forms",
+  sharepoint: "SharePoint",
+  teams: "Teams",
+  m365admincenter: "管理センター",
+  officecopilotsearchanswer: "検索回答",
+};
+
 /**
  * キーをわかりやすいラベルに変換
  */
 export function prettifyAppClass(key: string) {
-  const map: Record<string, string> = {
-    webchat: "Webチャット",
-    bizchat: "職場チャット",
-    word: "Word",
-    excel: "Excel",
-    powerpoint: "PowerPoint",
-    outlook: "Outlook",
-    forms: "Forms",
-    sharepoint: "SharePoint",
-    teams: "Teams",
-    m365admincenter: "管理センター",
-    officecopilotsearchanswer: "検索回答",
-  };
   const last = key.split(".").pop() || key;
-  return map[last] || last;
+  return appMap[last] || last;
 }

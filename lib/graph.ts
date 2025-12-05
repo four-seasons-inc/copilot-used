@@ -4,7 +4,13 @@ import dayjs from "dayjs";
 import clientPromise from "@/lib/mongodb";
 import { AiInteraction, UserUsage } from "@/types";
 
-export async function getUsers() {
+export async function getUsers(): Promise<
+  {
+    id: string;
+    userPrincipalName: string;
+    displayName: string;
+  }[]
+> {
   const { data } = await graph(
     `/v1.0/users?$select=id,userPrincipalName,displayName&$count=true&$filter=endswith(userPrincipalName,%27@0004s.com%27)and surname ne null`
   );
@@ -44,6 +50,23 @@ export async function asyncDb() {
   const users = await getUsers();
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB);
+  const newUserUpsert = users.map((user) => ({
+    updateOne: {
+      filter: {
+        id: user.id,
+      },
+      update: {
+        $setOnInsert: {
+          ...user,
+        },
+      },
+      upsert: true,
+    },
+  }));
+  console.log(newUserUpsert);
+  await db.collection("users").bulkWrite(newUserUpsert, {
+    ordered: false,
+  });
   for (const user of users) {
     try {
       const logs = await getLogsForUser(user.id);
@@ -95,35 +118,16 @@ export async function getLogsForUsers(range = 30) {
   }
   return arr.sort((a, b) => b.promptTotal - a.promptTotal);
 }
-
-export async function fetchInteractionsForUser(
-  userId: string,
-  fromIso: string,
-  toIso: string,
-  opts?: { appClassFilter?: string[] }
-): Promise<AiInteraction[]> {
-  const filterParts = [
-    `createdDateTime ge ${fromIso}`,
-    `createdDateTime lt ${toIso}`,
-  ];
-  if (opts?.appClassFilter?.length) {
-    const orClause = opts.appClassFilter
-      .map((v) => `appClass eq '${v}'`)
-      .join(" or ");
-    filterParts.push(`(${orClause})`);
+export async function getUsersFromDB() {
+  const client = await clientPromise;
+  const db = client.db(process.env.MONGODB_DB);
+  try {
+    const users = await db
+      .collection<AiInteraction>("users")
+      .find({})
+      .toArray();
+    return users;
+  } catch (error) {
+    return [];
   }
-
-  let nextUrl =
-    `/beta/copilot/users/${userId}/interactionHistory/getAllEnterpriseInteractions` +
-    `?$top=100&$filter=${encodeURIComponent(filterParts.join(" and "))}`;
-
-  const all: AiInteraction[] = [];
-
-  while (nextUrl) {
-    const { data } = await graph.get(nextUrl);
-    if (Array.isArray(data.value)) all.push(...data.value);
-    nextUrl = data["@odata.nextLink"] ?? "";
-  }
-
-  return all;
 }
