@@ -1,41 +1,84 @@
-import type { UserUsage } from "@/types";
-import { aggregateByAppClass, appClassToChartData } from "@/utils/agg";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+"use client";
 
-export default function UsageChart({ data }: { data: UserUsage[] }) {
-  const agg = aggregateByAppClass(data);
-  const chartData = appClassToChartData(agg).slice(0, 10);
+import { FC, useMemo } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { UserUsage } from "@/types";
+import { aggregateByAppClass, appClassToChartData } from "@/utils/agg";
+
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  ChartOptions,
+} from "chart.js";
+
+import { Bar } from "react-chartjs-2";
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+type Props = {
+  data: UserUsage[];
+};
+
+const UsageChart: FC<Props> = ({ data }) => {
+  const agg = useMemo(() => aggregateByAppClass(data), [data]);
+  const chartItems = useMemo(
+    () => appClassToChartData(agg).slice(0, 10),
+    [agg]
+  );
+
+  const chartData = {
+    labels: chartItems.map((item) => item.app),
+    datasets: [
+      {
+        label: "使用回数",
+        data: chartItems.map((item) => item.value),
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions: ChartOptions<"bar"> = {
+    indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) =>
+            new Intl.NumberFormat("ja-JP").format(ctx.parsed.x ?? 0),
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          callback: function (tickValue) {
+            return new Intl.NumberFormat("ja-JP").format(
+              Number(tickValue) || 0
+            );
+          },
+        },
+      },
+    },
+  };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow mt-4">
-      <h3 className="text-lg font-semibold mb-3">アプリ別合計使用数（上位）</h3>
-      <div style={{ width: "100%", height: 320 }}>
-        <ResponsiveContainer>
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ left: 10, right: 10 }}
-          >
-            <CartesianGrid strokeDasharray="2 2" />
-            <XAxis type="number" />
-            <YAxis dataKey="app" type="category" width={110} />
-            <Tooltip
-              formatter={(value: number) =>
-                new Intl.NumberFormat("ja-JP").format(value)
-              }
-            />
-            <Bar dataKey="value" name="使用回数" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    <Card className="p-4 bg-white shadow mt-4">
+      <CardHeader>
+        <CardTitle className="text-lg">アプリ別合計使用数（上位）</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-80 w-full">
+          <Bar data={chartData} options={chartOptions} />
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default UsageChart;
