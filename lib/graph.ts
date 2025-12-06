@@ -95,29 +95,7 @@ export async function asyncDb() {
     }
   }
 }
-export async function getLogsForUsers(range = 30) {
-  const users = await getUsers();
-  const client = await clientPromise;
-  const db = client.db(process.env.MONGODB_DB);
-  const customAgo = dayjs().subtract(range, "day").toDate();
-  const arr: UserUsage[] = [];
-  for (const user of users) {
-    try {
-      const logs = await db
-        .collection<AiInteraction>("logs")
-        .find({ userId: user.id, createdDateTime: { $gte: customAgo } })
-        .toArray();
-      if (logs.length === 0) continue;
-      arr.push({
-        ...user,
-        ...summarizeUser(logs),
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  return arr.sort((a, b) => b.promptTotal - a.promptTotal);
-}
+
 export async function getUsersFromDB() {
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB);
