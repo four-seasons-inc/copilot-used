@@ -63,7 +63,6 @@ export async function asyncDb() {
       upsert: true,
     },
   }));
-  console.log(newUserUpsert);
   await db.collection("users").bulkWrite(newUserUpsert, {
     ordered: false,
   });
