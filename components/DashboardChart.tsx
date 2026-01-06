@@ -18,6 +18,7 @@ import { LogsApiResponse } from "@/types";
 import LoadingOverlay from "./LoadingOverlay";
 import UsageChart from "./UsageChart";
 import UserTable from "./UserTable";
+import { Button } from "./ui/button";
 
 ChartJS.register(
   LineElement,
@@ -59,17 +60,43 @@ const DashboardChart: FC<Props> = ({ user, app, range, month }) => {
   };
   if (isLoading) return <LoadingOverlay show />;
   if (!data) return null;
+  function downloadCSV() {
+    if (!data) return;
+    const header = ["date", "promptTotal"];
+    const rows = data.chartData.map((u) => {
+      return [u.date, u.count];
+    });
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "copilot_usage_by_day.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>AI 利用状況（日別）</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2">
-          <p className="text-sm">合計プロンプト数:</p>
-          <p className="text-2xl font-bold">
-            {new Intl.NumberFormat("ja-JP").format(data.total)}
-          </p>
+        <div className="flex justify-between">
+          <div className="flex items-center gap-2">
+            <p className="text-sm">合計プロンプト数:</p>
+            <p className="text-2xl font-bold">
+              {new Intl.NumberFormat("ja-JP").format(data.total)}
+            </p>
+          </div>
+          <Button
+            variant="default"
+            onClick={downloadCSV}
+            className="px-4 py-2 cursor-pointer"
+          >
+            日別データのCSV出力
+          </Button>
         </div>
         <div className="h-[350px] w-full shadow p-2 rounded-md">
           <Line

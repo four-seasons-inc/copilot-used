@@ -1,18 +1,18 @@
 "use client";
 
-import { FC, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserUsage } from "@/types";
 import { aggregateByAppClass, appClassToChartData } from "@/utils/agg";
+import { FC, useMemo } from "react";
 
 import {
-  Chart as ChartJS,
   BarElement,
   CategoryScale,
+  Chart as ChartJS,
+  ChartOptions,
+  Legend,
   LinearScale,
   Tooltip,
-  Legend,
-  ChartOptions,
 } from "chart.js";
 
 import { Bar } from "react-chartjs-2";

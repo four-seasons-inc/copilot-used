@@ -36,7 +36,6 @@ export const Filters: React.FC<FiltersProps> = ({
 }) => {
   const { data = [], isLoading } = useSWR(`/api/users`, fetcher);
   const now = dayjs();
-  console.log(data);
   return (
     <div className="flex flex-wrap gap-4 items-center mb-6">
       {/* ユーザー */}

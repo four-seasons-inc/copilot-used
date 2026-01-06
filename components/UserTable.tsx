@@ -52,7 +52,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "copilot_usage.csv";
+    a.download = "copilot_usage_by_user.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -72,7 +72,7 @@ export default function UserTable({ data }: { data: UserUsage[] }) {
           onClick={downloadCSV}
           className="px-4 py-2 cursor-pointer"
         >
-          CSV出力
+          ユーザ別のCSV出力
         </Button>
       </div>
 
